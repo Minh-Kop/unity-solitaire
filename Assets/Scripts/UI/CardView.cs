@@ -1,12 +1,18 @@
 using Core;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UI
 {
-    public class CardView : MonoBehaviour
+    public abstract class CardView : MonoBehaviour
     {
+        public enum CardState
+        {
+            Flipped,
+            StackedHorizontally,
+            StackedVertically,
+        }
+
         [SerializeField]
         private Sprite _faceDownSprite;
 
@@ -14,22 +20,19 @@ namespace UI
         private Sprite _faceUpSprite;
 
         [SerializeField]
-        private TextMeshPro _text;
+        private Sprite _blankFaceUpSprite;
 
-        [SerializeField]
-        private TextMeshPro _countText;
+        private SpriteRenderer _cardSpriteRenderer;
 
         private Collider2D _collider2D;
 
         private SortingGroup _sortingGroup;
 
-        private SpriteRenderer _spriteRenderer;
-
         public Card CardData { get; private set; }
 
-        private void Awake()
+        protected virtual void Awake()
         {
-            _spriteRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
+            _cardSpriteRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
             _collider2D = GetComponent<Collider2D>();
             _collider2D.enabled = false;
             _sortingGroup = GetComponent<SortingGroup>();
@@ -38,35 +41,44 @@ namespace UI
         public void Setup(Card card)
         {
             CardData = card;
-            if (CardData is CoverCard coverCard)
-            {
-                _countText.text = $"{coverCard.Count}/{coverCard.MaxCount}";
-                _text.text = coverCard.Type;
-            }
-            else
-            {
-                _text.text = CardData.StringContent;
-            }
 
-            Refresh();
+            CustomSetup();
+
+            Refresh(CardState.Flipped);
         }
 
-        public void Refresh()
+        protected abstract void CustomSetup();
+
+        public void Refresh(CardState cardState)
         {
-            _spriteRenderer.sprite = CardData.IsFaceUp ? _faceUpSprite : _faceDownSprite;
-
-            _text.gameObject.SetActive(CardData.IsFaceUp);
-
-            if (CardData is CoverCard)
+            switch (cardState)
             {
-                _countText.gameObject.SetActive(CardData.IsFaceUp);
+                case CardState.Flipped:
+                    _cardSpriteRenderer.sprite = CardData.IsFaceUp
+                        ? _faceUpSprite
+                        : _faceDownSprite;
+                    HandleFlipped();
+                    break;
+                case CardState.StackedHorizontally:
+                    _cardSpriteRenderer.sprite = _blankFaceUpSprite;
+                    HandleStackedHorizontally();
+                    break;
+                case CardState.StackedVertically:
+                default:
+                    _cardSpriteRenderer.sprite = _blankFaceUpSprite;
+                    HandleStackedVertically();
+                    break;
             }
         }
+
+        protected abstract void HandleFlipped();
+        protected abstract void HandleStackedHorizontally();
+        protected abstract void HandleStackedVertically();
 
         public void FlipFaceUp()
         {
             CardData.IsFaceUp = true;
-            Refresh();
+            Refresh(CardState.Flipped);
         }
 
         public void EnableCollider(bool enable)
@@ -74,7 +86,6 @@ namespace UI
             _collider2D.enabled = enable;
         }
 
-        // Z nhỏ hơn = hiển thị trước (gần camera hơn)
         public void SetSortingOrder(int order)
         {
             _sortingGroup.sortingOrder = order;

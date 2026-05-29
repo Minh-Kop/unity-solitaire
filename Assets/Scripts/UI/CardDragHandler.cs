@@ -127,6 +127,7 @@ namespace UI
                 if (_originalPile is TableauPile tp && tp.TopCard != null)
                 {
                     tp.TopCard.FlipFaceUp();
+                    tp.FirstFaceUpIndex -= 1;
                 }
 
                 GameManager.MoveCount--;

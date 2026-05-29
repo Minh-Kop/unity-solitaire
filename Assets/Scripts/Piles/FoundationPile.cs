@@ -1,5 +1,6 @@
 using System.Collections;
 using Core;
+using TMPro;
 using UI;
 using UnityEngine;
 
@@ -7,9 +8,36 @@ namespace Piles
 {
     public class FoundationPile : Pile
     {
+        [SerializeField]
+        private SpriteRenderer _spriteRenderer;
+
+        [SerializeField]
+        private TextMeshPro _typeText;
+
+        [SerializeField]
+        private TextMeshPro _countText;
+
         private int _count;
         private int _maxCount;
         private string _type;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            EnableTypeAndCount(false);
+        }
+
+        private void Update()
+        {
+            _typeText.text = _type;
+            _countText.text = $"{_count}/{_maxCount}";
+        }
+
+        private void EnableTypeAndCount(bool enable = true)
+        {
+            _spriteRenderer.gameObject.SetActive(enable);
+            _countText.gameObject.SetActive(enable);
+        }
 
         public override void ArrangeCards()
         {
@@ -24,7 +52,12 @@ namespace Piles
                     // Destroy(TopCard.gameObject);
                     // cards.RemoveAt(cards.Count - 1);
                     (cards[^2], cards[^1]) = (cards[^1], cards[^2]);
+                    EnableTypeAndCount();
                 }
+            }
+            else
+            {
+                EnableTypeAndCount();
             }
 
             // Foundation chỉ hiện lá trên cùng
@@ -61,6 +94,7 @@ namespace Piles
             }
 
             cards.Clear();
+            EnableTypeAndCount(false);
         }
 
         public override bool CanAccept(CardView incoming)

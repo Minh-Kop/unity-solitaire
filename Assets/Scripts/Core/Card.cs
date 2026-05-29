@@ -1,15 +1,16 @@
+using System;
 using UnityEngine;
 
 namespace Core
 {
     public enum CardType
     {
-        String,
-        Image,
+        Text,
+        Sprite,
         Cover,
     }
 
-    [System.Serializable]
+    [Serializable]
     public class Card
     {
         public Card(CardType cardType, string type)
@@ -22,7 +23,7 @@ namespace Core
         {
             CardType = cardType;
             Type = type;
-            StringContent = content;
+            TextContent = content;
         }
 
         public Card(CardType cardType, string type, Sprite sprite)
@@ -35,7 +36,7 @@ namespace Core
         public bool IsFaceUp { get; set; }
         public CardType CardType { get; private set; }
         public string Type { get; private set; }
-        public string StringContent { get; private set; }
+        public string TextContent { get; private set; }
         public Sprite SpriteContent { get; private set; }
     }
 }

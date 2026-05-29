@@ -35,6 +35,11 @@ namespace Piles
                 cards[cardIndex].SetSortingOrder(cardIndex);
                 cards[cardIndex].EnableCollider(false);
                 cards[cardIndex].transform.localPosition = new Vector2(i * _cardXOffset, 0);
+
+                cards[cardIndex]
+                    .Refresh(
+                        i != 0 ? CardView.CardState.StackedHorizontally : CardView.CardState.Flipped
+                    );
             }
 
             TopCard?.EnableCollider(true);

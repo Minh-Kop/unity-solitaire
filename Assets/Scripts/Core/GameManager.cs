@@ -25,10 +25,13 @@ namespace Core
 
         [Header("Card Prefab & Sprites")]
         [SerializeField]
-        private GameObject _cardPrefab; // Prefab có SpriteRenderer + BoxCollider2D
+        private GameObject _textCardPrefab;
 
         [SerializeField]
-        private GameObject _coverCardPrefab; // Prefab có SpriteRenderer + BoxCollider2D
+        private GameObject _spriteCardPrefab;
+
+        [SerializeField]
+        private GameObject _coverCardPrefab;
 
         [Header("Layout (World Space)")]
         [SerializeField]
@@ -114,6 +117,7 @@ namespace Core
                     if (row == col)
                     {
                         card.IsFaceUp = true; // Lá trên cùng lật ngửa
+                        _tableaux[col].FirstFaceUpIndex = row;
                     }
 
                     var view = SpawnCard(card);
@@ -139,24 +143,24 @@ namespace Core
         {
             var deck = new List<Card>();
             deck.Add(new CoverCard("Animals", 3));
-            deck.Add(new Card(CardType.String, "Animals", "Cat"));
-            deck.Add(new Card(CardType.String, "Animals", "Dog"));
-            deck.Add(new Card(CardType.String, "Animals", "Bird"));
+            deck.Add(new Card(CardType.Text, "Animals", "Cat"));
+            deck.Add(new Card(CardType.Text, "Animals", "Dog"));
+            deck.Add(new Card(CardType.Text, "Animals", "Bird"));
 
             deck.Add(new CoverCard("Colors", 5));
-            deck.Add(new Card(CardType.String, "Colors", "Red"));
-            deck.Add(new Card(CardType.String, "Colors", "Green"));
-            deck.Add(new Card(CardType.String, "Colors", "Blue"));
-            deck.Add(new Card(CardType.String, "Colors", "Purple"));
-            deck.Add(new Card(CardType.String, "Colors", "Yellow"));
+            deck.Add(new Card(CardType.Text, "Colors", "Red"));
+            deck.Add(new Card(CardType.Text, "Colors", "Green"));
+            deck.Add(new Card(CardType.Text, "Colors", "Blue"));
+            deck.Add(new Card(CardType.Text, "Colors", "Purple"));
+            deck.Add(new Card(CardType.Text, "Colors", "Yellow"));
 
             deck.Add(new CoverCard("Fruits", 6));
-            deck.Add(new Card(CardType.String, "Fruits", "Orange"));
-            deck.Add(new Card(CardType.String, "Fruits", "Starfruit"));
-            deck.Add(new Card(CardType.String, "Fruits", "Blueberry"));
-            deck.Add(new Card(CardType.String, "Fruits", "Mango"));
-            deck.Add(new Card(CardType.String, "Fruits", "Apple"));
-            deck.Add(new Card(CardType.String, "Fruits", "Peach"));
+            deck.Add(new Card(CardType.Text, "Fruits", "Orange"));
+            deck.Add(new Card(CardType.Text, "Fruits", "Starfruit"));
+            deck.Add(new Card(CardType.Text, "Fruits", "Blueberry"));
+            deck.Add(new Card(CardType.Text, "Fruits", "Mango"));
+            deck.Add(new Card(CardType.Text, "Fruits", "Apple"));
+            deck.Add(new Card(CardType.Text, "Fruits", "Peach"));
 
             return deck;
         }
@@ -173,10 +177,19 @@ namespace Core
         private CardView SpawnCard(Card card)
         {
             // Spawn tại gốc, Pile.AddCard sẽ set position sau
-            var go =
-                card is CoverCard
-                    ? Instantiate(_coverCardPrefab, Vector3.zero, Quaternion.identity)
-                    : Instantiate(_cardPrefab, Vector3.zero, Quaternion.identity);
+            GameObject go;
+            if (card is CoverCard)
+            {
+                go = Instantiate(_coverCardPrefab, Vector3.zero, Quaternion.identity);
+            }
+            else if (card.CardType == CardType.Text)
+            {
+                go = Instantiate(_textCardPrefab, Vector3.zero, Quaternion.identity);
+            }
+            else
+            {
+                go = Instantiate(_spriteCardPrefab, Vector3.zero, Quaternion.identity);
+            }
 
             var view = go.GetComponent<CardView>();
 

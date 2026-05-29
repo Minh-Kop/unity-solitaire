@@ -32,7 +32,7 @@ namespace Piles
             {
                 c.gameObject.SetActive(false);
                 c.CardData.IsFaceUp = false;
-                c.Refresh();
+                c.Refresh(CardView.CardState.Flipped);
             }
 
             if (TopCard != null)

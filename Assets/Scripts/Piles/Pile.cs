@@ -14,7 +14,7 @@ namespace Piles
         public bool IsEmpty => cards.Count == 0;
         public int Count => cards.Count;
 
-        private void Awake()
+        protected virtual void Awake()
         {
             _collider2D = GetComponent<BoxCollider2D>();
         }
