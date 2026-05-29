@@ -310,7 +310,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1817632d99ef47b6906b1945c8b6c519, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UI.CardDragHandler
-  _cardYOffset: -0.3
 --- !u!1120581460 &4876221994510056182
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -394,7 +393,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 1.289}
+  m_AnchoredPosition: {x: 0, y: 1.235}
   m_SizeDelta: {x: 1.4957, y: 0.514}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &1155628211894675345
@@ -575,7 +574,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.819, y: -0}
+  m_AnchoredPosition: {x: 0.773, y: -0}
   m_SizeDelta: {x: 1.4957, y: 0.514}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &8727354688072767455

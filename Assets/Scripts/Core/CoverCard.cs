@@ -9,6 +9,6 @@ namespace Core
         }
 
         public int MaxCount { get; private set; }
-        public int Count { get; set; } = 0;
+        public int Count { get; set; }
     }
 }

@@ -72,6 +72,7 @@ namespace Piles
                 TopCard.gameObject.SetActive(true);
                 TopCard.EnableCollider(true);
                 TopCard.SetSortingOrder(0);
+                TopCard.Refresh(CardView.CardState.Flipped);
             }
 
             _count = cards.Count - 1;

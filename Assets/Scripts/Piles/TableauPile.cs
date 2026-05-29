@@ -7,9 +7,6 @@ namespace Piles
 {
     public class TableauPile : Pile
     {
-        [SerializeField]
-        private float _cardYOffset = -0.3f;
-
         private int _firstFaceUpIndex;
 
         public int FirstFaceUpIndex
@@ -22,19 +19,22 @@ namespace Piles
         // Size collider nên lớn để dễ drop vào cột rỗng
         public override void ArrangeCards()
         {
-            for (var i = 0; i < FirstFaceUpIndex; i++)
+            for (var i = 0; i < _firstFaceUpIndex; i++)
             {
-                cards[i].transform.localPosition = new Vector2(0, i * _cardYOffset);
+                cards[i].transform.localPosition = new Vector2(
+                    0,
+                    -i * GameManager.Instance.cardYOffset
+                );
                 cards[i].SetSortingOrder(i);
                 cards[i].EnableCollider(false);
             }
 
-            var extraYOffset = 0.17f;
-            for (var i = FirstFaceUpIndex; i < cards.Count; i++)
+            for (var i = _firstFaceUpIndex; i < cards.Count; i++)
             {
                 cards[i].transform.localPosition = new Vector2(
                     0,
-                    i == FirstFaceUpIndex ? i * _cardYOffset : i * (_cardYOffset - extraYOffset)
+                    -i * GameManager.Instance.cardYOffset
+                        - GameManager.Instance.extraYOffset * (i - FirstFaceUpIndex)
                 );
                 cards[i].SetSortingOrder(i);
                 if (i == cards.Count - 1)

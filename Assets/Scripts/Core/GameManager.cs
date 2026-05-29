@@ -55,6 +55,13 @@ namespace Core
         [SerializeField]
         private float topRowY = 3f; // Y của hàng Stock/Foundation
 
+        [Header("Offset")]
+        public float cardYOffset = 0.3f;
+
+        public float extraYOffset = 0.32f;
+
+        public float cardXOffset = 0.7f;
+
         public static int MoveCount { get; set; } = 50;
 
         // [Header("Systems")]

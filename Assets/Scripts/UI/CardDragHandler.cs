@@ -15,9 +15,6 @@ namespace UI
             IEndDragHandler,
             IPointerClickHandler
     {
-        [SerializeField]
-        private float _cardYOffset = -0.3f;
-
         private readonly int MaxSortingOrder = 100;
 
         private BoxCollider2D _boxCollider2D;
@@ -96,7 +93,8 @@ namespace UI
                 var index = _dragGroup.Count - 1 - i;
                 _dragGroup[index].transform.position = new Vector2(
                     targetPos.x,
-                    targetPos.y - i * _cardYOffset // offset dọc giữa các lá
+                    targetPos.y
+                        + i * (GameManager.Instance.cardYOffset + GameManager.Instance.extraYOffset) // offset dọc giữa các lá
                 );
 
                 _dragGroup[index].SetSortingOrder(MaxSortingOrder - i);
@@ -128,6 +126,7 @@ namespace UI
                 {
                     tp.TopCard.FlipFaceUp();
                     tp.FirstFaceUpIndex -= 1;
+                    tp.ArrangeCards();
                 }
 
                 GameManager.MoveCount--;

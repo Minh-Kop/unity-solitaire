@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core;
 using UI;
 using UnityEngine;
 
@@ -6,9 +7,6 @@ namespace Piles
 {
     public class WastePile : Pile
     {
-        [SerializeField]
-        private float _cardXOffset = 0.9f;
-
         // Waste chỉ cho phép lấy lá trên cùng
         public override bool CanAccept(CardView card)
         {
@@ -34,7 +32,10 @@ namespace Piles
                 cards[cardIndex].gameObject.SetActive(true);
                 cards[cardIndex].SetSortingOrder(cardIndex);
                 cards[cardIndex].EnableCollider(false);
-                cards[cardIndex].transform.localPosition = new Vector2(i * _cardXOffset, 0);
+                cards[cardIndex].transform.localPosition = new Vector2(
+                    i * GameManager.Instance.cardXOffset,
+                    0
+                );
 
                 cards[cardIndex]
                     .Refresh(
