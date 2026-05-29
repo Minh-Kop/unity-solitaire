@@ -8,23 +8,27 @@ namespace Piles
     public class TableauPile : Pile
     {
         [SerializeField]
-        private float cardYOffset = -0.3f;
+        private float _cardYOffset = -0.3f;
+
+        private int _firstFaceUpIndex;
 
         // Mỗi pile cần BoxCollider2D để nhận drop
         // Size collider nên lớn để dễ drop vào cột rỗng
-
-        protected override void ArrangeCards()
+        public override void ArrangeCards()
         {
             for (var i = 0; i < cards.Count; i++)
             {
-                cards[i].transform.localPosition = new Vector3(0, i * cardYOffset, i * -0.01f);
+                cards[i].transform.localPosition = new Vector2(0, i * _cardYOffset);
                 cards[i].SetSortingOrder(i);
+                cards[i].EnableCollider(false);
             }
+
+            TopCard?.EnableCollider(true);
         }
 
         public override bool CanAccept(CardView incoming)
         {
-            if (incoming == null || TopCard.CardData is CoverCard)
+            if (incoming == null || TopCard?.CardData is CoverCard)
             {
                 return false;
             }
@@ -37,14 +41,17 @@ namespace Piles
             return TopCard.CardData.Type == incoming.CardData.Type;
         }
 
-        public List<CardView> GetCardsFrom(int index)
+        public List<CardView> GetCardsFromLastToFirstFaceDown()
         {
-            return cards.GetRange(index, cards.Count - index);
-        }
+            var index = cards.Count - 1;
+            while (index >= 0 && cards[index].CardData.IsFaceUp)
+            {
+                index--;
+            }
 
-        public int IndexOf(CardView card)
-        {
-            return cards.IndexOf(card);
+            index++;
+
+            return cards.GetRange(index, cards.Count - index);
         }
     }
 }

@@ -41,11 +41,14 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Slot
+  - name: Pile
     uniqueID: 1678617437
     locked: 0
   - name: Card
     uniqueID: 2392917209
+    locked: 0
+  - name: Top
+    uniqueID: 3194661483
     locked: 0
   m_RenderingLayers:
   - Default

@@ -1,43 +1,82 @@
+using System.Collections;
 using Core;
 using UI;
+using UnityEngine;
 
 namespace Piles
 {
     public class FoundationPile : Pile
     {
-        private Suit? acceptedSuit = null;
+        private int _count;
+        private int _maxCount;
+        private string _type;
 
-        protected override void ArrangeCards()
+        public override void ArrangeCards()
         {
+            if (TopCard.CardData is CoverCard coverCard)
+            {
+                _count = coverCard.Count;
+                _maxCount = coverCard.MaxCount;
+                _type = coverCard.Type;
+
+                if (cards.Count > 1)
+                {
+                    // Destroy(TopCard.gameObject);
+                    // cards.RemoveAt(cards.Count - 1);
+                    (cards[^2], cards[^1]) = (cards[^1], cards[^2]);
+                }
+            }
+
             // Foundation chỉ hiện lá trên cùng
             foreach (var c in cards)
             {
                 c.gameObject.SetActive(false);
+                c.transform.localPosition = Vector3.zero;
             }
 
             if (TopCard != null)
             {
                 TopCard.gameObject.SetActive(true);
+                TopCard.EnableCollider(true);
+                TopCard.SetSortingOrder(0);
             }
+
+            _count = cards.Count - 1;
+
+            if (_count == _maxCount)
+            {
+                StartCoroutine(ClearPile());
+            }
+
+            print($"{_count}/{_maxCount}, type: {_type}");
+        }
+
+        private IEnumerator ClearPile()
+        {
+            yield return new WaitForSeconds(1f);
+
+            foreach (var card in cards)
+            {
+                Destroy(card.gameObject);
+            }
+
+            cards.Clear();
         }
 
         public override bool CanAccept(CardView incoming)
         {
+            print($"{_count}/{_maxCount}, type: {_type}");
             if (incoming == null)
             {
                 return false;
             }
 
-            var inc = incoming.CardData;
-
-            // Chỉ nhận 1 lá tại 1 thời điểm (không kéo nhóm vào Foundation)
-            if (IsEmpty)
+            if (IsEmpty && incoming.CardData is CoverCard)
             {
-                return inc.rank == 1; // Phải bắt đầu bằng Ace
+                return true;
             }
 
-            var top = TopCard.CardData;
-            return inc.suit == top.suit && inc.rank == top.rank + 1;
+            return _type == incoming.CardData.Type;
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core;
 using Piles;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,6 +7,7 @@ using UnityEngine.InputSystem;
 
 namespace UI
 {
+    [RequireComponent(typeof(CardView), typeof(BoxCollider2D))]
     public class CardDragHandler
         : MonoBehaviour,
             IBeginDragHandler,
@@ -13,10 +15,12 @@ namespace UI
             IEndDragHandler,
             IPointerClickHandler
     {
-        // Z position khi đang kéo (gần camera nhất)
-        private const float DRAG_Z = -10f;
-        private const float CARD_Z_STEP = 0.01f; // Offset Z giữa các lá trong nhóm
+        [SerializeField]
+        private float _cardYOffset = -0.3f;
 
+        private readonly int MaxSortingOrder = 100;
+
+        private BoxCollider2D _boxCollider2D;
         private CardView _cardView;
 
         private List<CardView> _dragGroup; // Nhóm bài đang kéo
@@ -30,6 +34,7 @@ namespace UI
             _mainCamera = Camera.main;
             _moveAction = InputSystem.actions.FindAction("Player/Mouse Move");
             _cardView = GetComponent<CardView>();
+            _boxCollider2D = GetComponent<BoxCollider2D>();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -41,13 +46,18 @@ namespace UI
             }
 
             _originalPile = GetComponentInParent<Pile>();
+            print("Original pile: " + _originalPile);
+
+            if (_originalPile is FoundationPile)
+            {
+                return;
+            }
 
             // Lấy nhóm bài nếu đang ở Tableau
             _dragGroup = new List<CardView>();
             if (_originalPile is TableauPile tableau)
             {
-                var index = tableau.IndexOf(_cardView);
-                _dragGroup = tableau.GetCardsFrom(index);
+                _dragGroup = tableau.GetCardsFromLastToFirstFaceDown();
             }
             else
             {
@@ -60,10 +70,11 @@ namespace UI
                 _originalPile.RemoveCard(c);
             }
 
+            _originalPile.ArrangeCards();
+
             // Tính offset để bài không nhảy về tâm con trỏ
             var mouseWorldPos = GetMouseWorldPos();
             _dragOffset = transform.position - mouseWorldPos;
-            print("Mouse pos: " + mouseWorldPos);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -75,23 +86,21 @@ namespace UI
 
             var targetPos = GetMouseWorldPos() + _dragOffset;
             targetPos.z = 0;
-            // targetPos.z = DRAG_Z;
 
-            _dragGroup[0].transform.position = targetPos;
+            _dragGroup[^1].transform.position = targetPos;
+            _dragGroup[^1].SetSortingOrder(MaxSortingOrder);
 
             // Kéo cả nhóm theo, offset dọc + z
             for (var i = 1; i < _dragGroup.Count; i++)
             {
-                _dragGroup[i].transform.position = new Vector3(
+                var index = _dragGroup.Count - 1 - i;
+                _dragGroup[index].transform.position = new Vector2(
                     targetPos.x,
-                    targetPos.y - i * 0.3f, // offset dọc giữa các lá
-                    DRAG_Z + i * CARD_Z_STEP
+                    targetPos.y - i * _cardYOffset // offset dọc giữa các lá
                 );
 
-                _dragGroup[i].SetSortingOrder(100 + i);
+                _dragGroup[index].SetSortingOrder(MaxSortingOrder - i);
             }
-
-            _dragGroup[0].SetSortingOrder(100);
         }
 
         public void OnEndDrag(PointerEventData eventData)
@@ -102,8 +111,9 @@ namespace UI
             }
 
             var targetPile = FindTargetPile();
+            print("Drop on: " + targetPile);
 
-            if (targetPile != null && targetPile.CanAccept(_dragGroup[0]))
+            if (targetPile != null && targetPile.CanAccept(_dragGroup[^1]))
             {
                 // Drop thành công
                 foreach (var c in _dragGroup)
@@ -111,11 +121,15 @@ namespace UI
                     targetPile.AddCard(c);
                 }
 
+                targetPile.ArrangeCards();
+
                 // Lật lá trên cùng của pile cũ
                 if (_originalPile is TableauPile tp && tp.TopCard != null)
                 {
                     tp.TopCard.FlipFaceUp();
                 }
+
+                GameManager.MoveCount--;
             }
             else
             {
@@ -124,6 +138,8 @@ namespace UI
                 {
                     _originalPile.AddCard(c);
                 }
+
+                _originalPile.ArrangeCards();
             }
 
             _dragGroup = null;
@@ -144,7 +160,7 @@ namespace UI
             return _mainCamera.ScreenToWorldPoint(mousePosition);
         }
 
-        private Pile FindTargetPile()
+        private Pile FindTargetPile_()
         {
             // Raycast 2D để tìm pile đang hover
             Vector2 mousePos = _mainCamera.ScreenToWorldPoint(_moveAction.ReadValue<Vector2>());
@@ -153,6 +169,43 @@ namespace UI
             foreach (var hit in hits)
             {
                 var pile = hit.collider.GetComponent<Pile>();
+                if (pile != null && pile != _originalPile)
+                {
+                    return pile;
+                }
+            }
+
+            return null;
+        }
+
+        private Pile FindTargetPile()
+        {
+            // 1. Lấy vị trí tâm chuẩn trong không gian thế giới (đã tính cả Offset của Collider)
+            Vector2 center = _boxCollider2D.bounds.center;
+
+            // 2. Lấy kích thước chuẩn (đã nhân với hệ số Scale của Transform)
+            // Chúng ta lấy từ size của collider nhân với lossyScale của GameObject
+            var size = new Vector2(
+                _boxCollider2D.size.x * transform.lossyScale.x,
+                _boxCollider2D.size.y * transform.lossyScale.y
+            );
+
+            // 3. Lấy góc quay hiện tại của GameObject (Tính theo trục Z trong 2D)
+            var angle = transform.eulerAngles.z;
+
+            // 4. Truyền tất cả vào hàm OverlapBox
+            var hits = Physics2D.OverlapBoxAll(center, size, angle);
+
+            // Duyệt kết quả
+            foreach (var hit in hits)
+            {
+                // Tránh việc hộp tự quét trúng chính nó
+                if (hit == _boxCollider2D)
+                {
+                    continue;
+                }
+
+                var pile = hit.GetComponent<Pile>() ?? hit.GetComponentInParent<Pile>();
                 if (pile != null && pile != _originalPile)
                 {
                     return pile;

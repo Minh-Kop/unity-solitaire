@@ -30,12 +30,6 @@ namespace Core
         [SerializeField]
         private GameObject _coverCardPrefab; // Prefab có SpriteRenderer + BoxCollider2D
 
-        [SerializeField]
-        private Sprite[] cardFaceSprites; // 52 sprites, index = suit*13 + (rank-1)
-
-        [SerializeField]
-        private Sprite cardBackSprite;
-
         [Header("Layout (World Space)")]
         [SerializeField]
         private float cardWidth = 0.7f; // Khoảng cách ngang giữa các cột
@@ -57,6 +51,8 @@ namespace Core
 
         [SerializeField]
         private float topRowY = 3f; // Y của hàng Stock/Foundation
+
+        public static int MoveCount { get; set; } = 50;
 
         // [Header("Systems")]
         // public WinChecker winChecker;
@@ -123,6 +119,8 @@ namespace Core
                     var view = SpawnCard(card);
                     _tableaux[col].AddCard(view);
                 }
+
+                _tableaux[col].ArrangeCards();
             }
 
             // Phần còn lại vào Stock
@@ -131,6 +129,8 @@ namespace Core
                 var view = SpawnCard(deck[i]);
                 _stock.AddCard(view);
             }
+
+            _stock.ArrangeCards();
         }
 
         // ─── Helpers ────────────────────────────────────────────────────────────
@@ -208,7 +208,9 @@ namespace Core
                 if (foundation.CanAccept(card))
                 {
                     currentPile.RemoveCard(card);
+                    currentPile.ArrangeCards();
                     foundation.AddCard(card);
+                    foundation.ArrangeCards();
 
                     // Lật lá kế tiếp nếu từ Tableau
                     if (currentPile is TableauPile tp && tp.TopCard != null)
