@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using Interfaces;
 using Piles;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,19 +9,14 @@ using UnityEngine.InputSystem;
 namespace UI
 {
     [RequireComponent(typeof(CardView), typeof(BoxCollider2D))]
-    public class CardDragHandler
-        : MonoBehaviour,
-            IBeginDragHandler,
-            IDragHandler,
-            IEndDragHandler,
-            IPointerClickHandler
+    public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         private readonly int MaxSortingOrder = 100;
 
         private BoxCollider2D _boxCollider2D;
         protected CardView _cardView;
+        private IGlower _currentGlower;
 
-        private List<CardView> _dragGroup; // Nhóm bài đang kéo
         private Vector3 _dragOffset;
         protected bool _isDragging;
 
@@ -58,6 +54,7 @@ namespace UI
             _dragOffset = transform.position - mouseWorldPos;
 
             _cardView.SetGlowBorders(true);
+            _cardView.SetSortingOrder(MaxSortingOrder);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -71,20 +68,47 @@ namespace UI
             targetPos.z = 0;
 
             _cardView.transform.position = targetPos;
-            _cardView.SetSortingOrder(MaxSortingOrder);
+
+            var currentGlower = FindTargetPile();
+            if (currentGlower != _currentGlower)
+            {
+                if (_currentGlower != null)
+                {
+                    _currentGlower.SetGlowBorders(false);
+                }
+
+                _currentGlower = currentGlower;
+
+                if (_currentGlower != null)
+                {
+                    _currentGlower.SetGlowBorders(true);
+                }
+            }
         }
 
-        public virtual void OnEndDrag(PointerEventData eventData)
+        public void OnEndDrag(PointerEventData eventData)
         {
             if (!_isDragging)
             {
                 return;
             }
 
-            // var targetPile = FindTargetPile();
-            var targetPile = FindTargetPile(eventData);
+            _cardView.SetGlowBorders(false);
+
+            Pile targetPile = null;
+            if (_currentGlower != null)
+            {
+                targetPile = _currentGlower.GetPile();
+                _currentGlower.SetGlowBorders(false);
+            }
+
             print("Drop on: " + targetPile);
 
+            HandleDrop(targetPile);
+        }
+
+        protected virtual void HandleDrop(Pile targetPile)
+        {
             if (targetPile != null && targetPile.CanAccept(_cardView))
             {
                 // Drop thành công
@@ -98,18 +122,6 @@ namespace UI
                 // Trả về chỗ cũ
                 _originalPile.AddCard(_cardView);
                 _originalPile.ArrangeCards();
-            }
-
-            _dragGroup = null;
-            _cardView.SetGlowBorders(false);
-        }
-
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            // Double click → tự động gửi lên Foundation nếu được
-            if (eventData.clickCount == 2)
-            {
-                // GameManager.Instance.TryAutoMove(_cardView);
             }
         }
 
@@ -134,7 +146,7 @@ namespace UI
             return _mainCamera.ScreenToWorldPoint(mousePosition);
         }
 
-        protected Pile FindTargetPile()
+        private IGlower FindTargetPile()
         {
             // 1. Lấy vị trí tâm chuẩn trong không gian thế giới (đã tính cả Offset của Collider)
             Vector2 center = _boxCollider2D.bounds.center;
@@ -146,27 +158,39 @@ namespace UI
             var angle = transform.eulerAngles.z;
 
             // 4. Truyền tất cả vào hàm OverlapBox
-            var hits = Physics2D.OverlapBoxAll(center, size, angle);
+            // var hits = Physics2D.OverlapBoxAll(center, size, angle);
+            var hits = Physics2D.OverlapBoxAll(center, size, 0f);
+
+            Collider2D bestCollider2D = null;
+            var maxOverlap = 0f;
 
             // Duyệt kết quả
             foreach (var hit in hits)
             {
                 // Tránh việc hộp tự quét trúng chính nó
-                if (hit == _boxCollider2D)
+                if (
+                    hit == _boxCollider2D
+                    || hit == null
+                    || hit.gameObject == _originalPile.gameObject
+                )
                 {
                     continue;
                 }
 
-                var pile = hit.GetComponent<Pile>() ?? hit.GetComponentInParent<Pile>();
-                if (pile != null && pile != _originalPile)
+                var overlap = CalculateOverlapArea(_boxCollider2D.bounds, hit.bounds);
+                if (overlap > maxOverlap)
                 {
-                    print("Pile: " + pile);
-                    return pile;
+                    maxOverlap = overlap;
+                    bestCollider2D = hit;
                 }
             }
 
-            print("Pile: NULL");
-            return null;
+            if (bestCollider2D == null)
+            {
+                return null;
+            }
+
+            return bestCollider2D.GetComponent<IGlower>();
         }
 
         protected Pile FindTargetPile(PointerEventData eventData)
@@ -184,6 +208,19 @@ namespace UI
             }
 
             return null;
+        }
+
+        private float CalculateOverlapArea(Bounds a, Bounds b)
+        {
+            var overlapX = Mathf.Min(a.max.x, b.max.x) - Mathf.Max(a.min.x, b.min.x);
+            var overlapY = Mathf.Min(a.max.y, b.max.y) - Mathf.Max(a.min.y, b.min.y);
+
+            if (overlapX <= 0 || overlapY <= 0)
+            {
+                return 0f; // Không overlap
+            }
+
+            return overlapX * overlapY;
         }
     }
 }

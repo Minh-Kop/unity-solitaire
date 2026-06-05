@@ -1,32 +1,48 @@
 using System.Collections.Generic;
+using Interfaces;
 using UI;
 using UnityEngine;
 
 namespace Piles
 {
-    public abstract class Pile : MonoBehaviour
+    public abstract class Pile : MonoBehaviour, IGlower
     {
         protected List<CardView> _cards = new();
         private BoxCollider2D _collider2D;
+        private GameObject _glowBorders;
 
         public CardView TopCard => _cards.Count > 0 ? _cards[^1] : null;
-        public bool IsEmpty => _cards.Count == 0;
-        public int Count => _cards.Count;
+        protected bool IsEmpty => _cards.Count == 0;
 
         protected virtual void Awake()
         {
             _collider2D = GetComponent<BoxCollider2D>();
+
+            var temp = transform.Find("Glow Border");
+            if (temp)
+            {
+                _glowBorders = temp.gameObject;
+            }
+        }
+
+        public void SetGlowBorders(bool enable)
+        {
+            if (_glowBorders)
+            {
+                _glowBorders.SetActive(enable);
+            }
+        }
+
+        public Pile GetPile()
+        {
+            return this;
         }
 
         public virtual void AddCard(CardView card)
         {
-            if (_cards.Count == 0)
-            {
-                _collider2D.enabled = false;
-            }
-
             _cards.Add(card);
             card.transform.SetParent(transform);
+            card.SetPile();
             // ArrangeCards();
         }
 
@@ -34,11 +50,6 @@ namespace Piles
         {
             _cards.Remove(card);
             // ArrangeCards();
-
-            if (_cards.Count == 0)
-            {
-                _collider2D.enabled = true;
-            }
         }
 
         // Mỗi loại pile sắp xếp bài khác nhau

@@ -1,10 +1,12 @@
 using Core;
+using Interfaces;
+using Piles;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UI
 {
-    public abstract class CardView : MonoBehaviour
+    public abstract class CardView : MonoBehaviour, IGlower
     {
         public enum CardState
         {
@@ -28,6 +30,8 @@ namespace UI
 
         protected GameObject _glowBorders;
 
+        protected Pile _pile;
+
         private SortingGroup _sortingGroup;
 
         public Card CardData { get; private set; }
@@ -39,17 +43,32 @@ namespace UI
             _cardSpriteRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
             _collider2D = GetComponent<BoxCollider2D>();
             _sortingGroup = GetComponent<SortingGroup>();
-            GetGlowBorders();
-        }
 
-        protected virtual void GetGlowBorders()
-        {
-            _glowBorders = transform.Find("Glow Border").gameObject;
+            var temp = transform.Find("Glow Border");
+            if (temp)
+            {
+                _glowBorders = temp.gameObject;
+            }
         }
 
         public virtual void SetGlowBorders(bool enable)
         {
+            if (_pile is WastePile)
+            {
+                return;
+            }
+
             _glowBorders.SetActive(enable);
+        }
+
+        public Pile GetPile()
+        {
+            return _pile;
+        }
+
+        public void SetPile()
+        {
+            _pile = GetComponentInParent<Pile>();
         }
 
         public void Setup(Card card)

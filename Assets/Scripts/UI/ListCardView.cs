@@ -8,15 +8,17 @@ namespace UI
     public class ListCardView : CardView
     {
         private readonly List<CardView> _cards = new();
-        private TableauPile _tableauPile;
+
+        private Vector2 _originalBoxColliderSize;
         public bool IsDraggingAllowed => _cards.Count > 0;
         public CardView TopCard => _cards.Count > 0 ? _cards[^1] : null;
         public bool IsEmpty => _cards.Count == 0;
 
         protected override void Awake()
         {
-            _tableauPile = GetComponentInParent<TableauPile>();
+            _pile = GetComponentInParent<TableauPile>();
             base.Awake();
+            _originalBoxColliderSize = _collider2D.size;
         }
 
         public override void SetSortingOrder(int order)
@@ -32,7 +34,8 @@ namespace UI
         {
             if (IsEmpty)
             {
-                base.SetGlowBorders(enable);
+                print(_pile);
+                _pile.SetGlowBorders(enable);
             }
             else
             {
@@ -76,23 +79,24 @@ namespace UI
                 }
             }
 
-            _collider2D.size = new Vector2(
-                _collider2D.size.x,
-                _cards[0].transform.position.y
-                    - _cards[^1].transform.position.y
-                    + _cards[0].ColliderSize.y
-            );
-            _collider2D.offset = new Vector2(
-                0,
-                -(_collider2D.size.y - _cards[0].ColliderSize.y) / 2
-            );
-        }
-
-        protected override void GetGlowBorders()
-        {
-            _glowBorders = _tableauPile
-                .transform.GetChild(_tableauPile.transform.childCount - 1)
-                .gameObject;
+            if (_cards.Count == 0)
+            {
+                _collider2D.offset = Vector2.zero;
+                _collider2D.size = _originalBoxColliderSize;
+            }
+            else
+            {
+                _collider2D.size = new Vector2(
+                    _collider2D.size.x,
+                    _cards[0].transform.position.y
+                        - _cards[^1].transform.position.y
+                        + _cards[0].ColliderSize.y
+                );
+                _collider2D.offset = new Vector2(
+                    0,
+                    -(_collider2D.size.y - _cards[0].ColliderSize.y) / 2
+                );
+            }
         }
 
         public void AddCard(CardView card)

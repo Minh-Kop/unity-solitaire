@@ -26,6 +26,7 @@ namespace Piles
             if (card.CardData.IsFaceUp)
             {
                 _listCardView.AddCard(card);
+                card.SetPile();
             }
             else
             {
@@ -78,8 +79,9 @@ namespace Piles
                 FirstFaceUpIndex -= 1;
                 _listCardView.AddCard(TopCard);
                 _cards.Remove(TopCard);
-                ArrangeCards();
             }
+
+            ArrangeCards();
         }
     }
 }

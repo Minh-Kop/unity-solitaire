@@ -43,16 +43,8 @@ namespace UI
             base.OnBeginDrag(eventData);
         }
 
-        public override void OnEndDrag(PointerEventData eventData)
+        protected override void HandleDrop(Pile targetPile)
         {
-            if (!_isDragging)
-            {
-                return;
-            }
-
-            var targetPile = FindTargetPile(eventData);
-
-            print("Drop on: " + targetPile);
             if (targetPile != null && targetPile.CanAccept(_listCardView.TopCard))
             {
                 // Drop thành công
@@ -68,8 +60,6 @@ namespace UI
                 _listCardView.transform.position = _originalPosition;
                 _listCardView.SetSortingOrder(_originalSortingOrder);
             }
-
-            _listCardView.SetGlowBorders(false);
         }
     }
 }

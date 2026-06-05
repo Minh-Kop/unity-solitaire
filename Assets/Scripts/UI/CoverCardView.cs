@@ -27,6 +27,11 @@ namespace UI
 
         private void Update()
         {
+            if (_coverCard == null)
+            {
+                return;
+            }
+
             _countText.text = $"{_coverCard.Count}/{_coverCard.MaxCount}";
         }
 
