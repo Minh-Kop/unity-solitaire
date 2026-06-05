@@ -24,18 +24,32 @@ namespace UI
 
         private SpriteRenderer _cardSpriteRenderer;
 
-        private Collider2D _collider2D;
+        protected BoxCollider2D _collider2D;
+
+        protected GameObject _glowBorders;
 
         private SortingGroup _sortingGroup;
 
         public Card CardData { get; private set; }
 
+        public Vector2 ColliderSize => _collider2D.size;
+
         protected virtual void Awake()
         {
             _cardSpriteRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
-            _collider2D = GetComponent<Collider2D>();
-            _collider2D.enabled = false;
+            _collider2D = GetComponent<BoxCollider2D>();
             _sortingGroup = GetComponent<SortingGroup>();
+            GetGlowBorders();
+        }
+
+        protected virtual void GetGlowBorders()
+        {
+            _glowBorders = transform.Find("Glow Border").gameObject;
+        }
+
+        public virtual void SetGlowBorders(bool enable)
+        {
+            _glowBorders.SetActive(enable);
         }
 
         public void Setup(Card card)
@@ -45,6 +59,7 @@ namespace UI
             CustomSetup();
 
             Refresh(CardState.Flipped);
+            EnableCollider(false);
         }
 
         protected abstract void CustomSetup();
@@ -86,9 +101,14 @@ namespace UI
             _collider2D.enabled = enable;
         }
 
-        public void SetSortingOrder(int order)
+        public virtual void SetSortingOrder(int order)
         {
             _sortingGroup.sortingOrder = order;
+        }
+
+        public int GetSortingOrder()
+        {
+            return _sortingGroup.sortingOrder;
         }
     }
 }

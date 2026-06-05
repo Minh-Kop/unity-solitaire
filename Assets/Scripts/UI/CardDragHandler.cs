@@ -18,15 +18,17 @@ namespace UI
         private readonly int MaxSortingOrder = 100;
 
         private BoxCollider2D _boxCollider2D;
-        private CardView _cardView;
+        protected CardView _cardView;
 
         private List<CardView> _dragGroup; // Nhóm bài đang kéo
         private Vector3 _dragOffset;
+        protected bool _isDragging;
+
         private Camera _mainCamera;
         private InputAction _moveAction;
         private Pile _originalPile;
 
-        private void Awake()
+        protected virtual void Awake()
         {
             _mainCamera = Camera.main;
             _moveAction = InputSystem.actions.FindAction("Player/Mouse Move");
@@ -34,49 +36,33 @@ namespace UI
             _boxCollider2D = GetComponent<BoxCollider2D>();
         }
 
-        public void OnBeginDrag(PointerEventData eventData)
+        public virtual void OnBeginDrag(PointerEventData eventData)
         {
-            if (!_cardView.CardData.IsFaceUp)
+            if (!CheckIfCanDrag())
             {
-                print("Cannot drag unflipped card");
                 return;
             }
 
             _originalPile = GetComponentInParent<Pile>();
+
             print("Original pile: " + _originalPile);
 
             if (_originalPile is FoundationPile)
             {
+                _isDragging = false;
                 return;
             }
-
-            // Lấy nhóm bài nếu đang ở Tableau
-            _dragGroup = new List<CardView>();
-            if (_originalPile is TableauPile tableau)
-            {
-                _dragGroup = tableau.GetCardsFromLastToFirstFaceDown();
-            }
-            else
-            {
-                _dragGroup.Add(_cardView);
-            }
-
-            // Chuyển nhóm bài lên DragLayer
-            foreach (var c in _dragGroup)
-            {
-                _originalPile.RemoveCard(c);
-            }
-
-            _originalPile.ArrangeCards();
 
             // Tính offset để bài không nhảy về tâm con trỏ
             var mouseWorldPos = GetMouseWorldPos();
             _dragOffset = transform.position - mouseWorldPos;
+
+            _cardView.SetGlowBorders(true);
         }
 
         public void OnDrag(PointerEventData eventData)
         {
-            if (_dragGroup == null || _dragGroup.Count == 0)
+            if (!_isDragging)
             {
                 return;
             }
@@ -84,65 +70,38 @@ namespace UI
             var targetPos = GetMouseWorldPos() + _dragOffset;
             targetPos.z = 0;
 
-            _dragGroup[^1].transform.position = targetPos;
-            _dragGroup[^1].SetSortingOrder(MaxSortingOrder);
-
-            // Kéo cả nhóm theo, offset dọc + z
-            for (var i = 1; i < _dragGroup.Count; i++)
-            {
-                var index = _dragGroup.Count - 1 - i;
-                _dragGroup[index].transform.position = new Vector2(
-                    targetPos.x,
-                    targetPos.y
-                        + i * (GameManager.Instance.cardYOffset + GameManager.Instance.extraYOffset) // offset dọc giữa các lá
-                );
-
-                _dragGroup[index].SetSortingOrder(MaxSortingOrder - i);
-            }
+            _cardView.transform.position = targetPos;
+            _cardView.SetSortingOrder(MaxSortingOrder);
         }
 
-        public void OnEndDrag(PointerEventData eventData)
+        public virtual void OnEndDrag(PointerEventData eventData)
         {
-            if (_dragGroup == null)
+            if (!_isDragging)
             {
                 return;
             }
 
-            var targetPile = FindTargetPile();
+            // var targetPile = FindTargetPile();
+            var targetPile = FindTargetPile(eventData);
             print("Drop on: " + targetPile);
 
-            if (targetPile != null && targetPile.CanAccept(_dragGroup[^1]))
+            if (targetPile != null && targetPile.CanAccept(_cardView))
             {
                 // Drop thành công
-                foreach (var c in _dragGroup)
-                {
-                    targetPile.AddCard(c);
-                }
-
+                targetPile.AddCard(_cardView);
                 targetPile.ArrangeCards();
-
-                // Lật lá trên cùng của pile cũ
-                if (_originalPile is TableauPile tp && tp.TopCard != null)
-                {
-                    tp.TopCard.FlipFaceUp();
-                    tp.FirstFaceUpIndex -= 1;
-                    tp.ArrangeCards();
-                }
 
                 GameManager.MoveCount--;
             }
             else
             {
                 // Trả về chỗ cũ
-                foreach (var c in _dragGroup)
-                {
-                    _originalPile.AddCard(c);
-                }
-
+                _originalPile.AddCard(_cardView);
                 _originalPile.ArrangeCards();
             }
 
             _dragGroup = null;
+            _cardView.SetGlowBorders(false);
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -154,41 +113,34 @@ namespace UI
             }
         }
 
+        protected virtual bool CheckIfCanDrag()
+        {
+            if (!_cardView.CardData.IsFaceUp)
+            {
+                print("Cannot drag unflipped card");
+                _isDragging = false;
+            }
+            else
+            {
+                _isDragging = true;
+            }
+
+            return _isDragging;
+        }
+
         private Vector3 GetMouseWorldPos()
         {
             Vector3 mousePosition = _moveAction.ReadValue<Vector2>();
             return _mainCamera.ScreenToWorldPoint(mousePosition);
         }
 
-        private Pile FindTargetPile_()
-        {
-            // Raycast 2D để tìm pile đang hover
-            Vector2 mousePos = _mainCamera.ScreenToWorldPoint(_moveAction.ReadValue<Vector2>());
-            var hits = Physics2D.RaycastAll(mousePos, Vector2.zero);
-
-            foreach (var hit in hits)
-            {
-                var pile = hit.collider.GetComponent<Pile>();
-                if (pile != null && pile != _originalPile)
-                {
-                    return pile;
-                }
-            }
-
-            return null;
-        }
-
-        private Pile FindTargetPile()
+        protected Pile FindTargetPile()
         {
             // 1. Lấy vị trí tâm chuẩn trong không gian thế giới (đã tính cả Offset của Collider)
             Vector2 center = _boxCollider2D.bounds.center;
 
-            // 2. Lấy kích thước chuẩn (đã nhân với hệ số Scale của Transform)
-            // Chúng ta lấy từ size của collider nhân với lossyScale của GameObject
-            var size = new Vector2(
-                _boxCollider2D.size.x * transform.lossyScale.x,
-                _boxCollider2D.size.y * transform.lossyScale.y
-            );
+            // Đơn giản hơn và chính xác hơn:
+            var size = _boxCollider2D.bounds.size;
 
             // 3. Lấy góc quay hiện tại của GameObject (Tính theo trục Z trong 2D)
             var angle = transform.eulerAngles.z;
@@ -206,6 +158,25 @@ namespace UI
                 }
 
                 var pile = hit.GetComponent<Pile>() ?? hit.GetComponentInParent<Pile>();
+                if (pile != null && pile != _originalPile)
+                {
+                    print("Pile: " + pile);
+                    return pile;
+                }
+            }
+
+            print("Pile: NULL");
+            return null;
+        }
+
+        protected Pile FindTargetPile(PointerEventData eventData)
+        {
+            var results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(eventData, results);
+
+            foreach (var result in results)
+            {
+                var pile = result.gameObject.GetComponentInParent<Pile>();
                 if (pile != null && pile != _originalPile)
                 {
                     return pile;

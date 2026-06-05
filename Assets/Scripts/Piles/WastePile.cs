@@ -16,28 +16,28 @@ namespace Piles
         public override void ArrangeCards()
         {
             // Hiện tối đa 3 lá trên cùng
-            var showCount = Mathf.Min(3, cards.Count);
-            var startIndex = cards.Count - showCount;
+            var showCount = Mathf.Min(3, _cards.Count);
+            var startIndex = _cards.Count - showCount;
 
             // Hiện 3 lá trên cùng, offset nhẹ để thấy có nhiều bài
             for (var i = 0; i < startIndex; i++)
             {
-                cards[i].gameObject.SetActive(false);
-                cards[i].EnableCollider(false);
+                _cards[i].gameObject.SetActive(false);
+                _cards[i].EnableCollider(false);
             }
 
             for (var i = 0; i < showCount; i++)
             {
-                var cardIndex = cards.Count - 1 - i;
-                cards[cardIndex].gameObject.SetActive(true);
-                cards[cardIndex].SetSortingOrder(cardIndex);
-                cards[cardIndex].EnableCollider(false);
-                cards[cardIndex].transform.localPosition = new Vector2(
+                var cardIndex = _cards.Count - 1 - i;
+                _cards[cardIndex].gameObject.SetActive(true);
+                _cards[cardIndex].SetSortingOrder(cardIndex);
+                _cards[cardIndex].EnableCollider(false);
+                _cards[cardIndex].transform.localPosition = new Vector2(
                     i * GameManager.Instance.cardXOffset,
                     0
                 );
 
-                cards[cardIndex]
+                _cards[cardIndex]
                     .Refresh(
                         i != 0 ? CardView.CardState.StackedHorizontally : CardView.CardState.Flipped
                     );
@@ -61,9 +61,9 @@ namespace Piles
 
         public List<CardView> TakeAll()
         {
-            var taken = new List<CardView>(cards);
+            var taken = new List<CardView>(_cards);
             taken.Reverse(); // Ngược lại để Stock nhận đúng thứ tự
-            cards.Clear();
+            _cards.Clear();
             return taken;
         }
     }

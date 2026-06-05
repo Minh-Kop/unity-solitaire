@@ -28,7 +28,7 @@ namespace Piles
         public override void ArrangeCards()
         {
             // Stock chỉ hiện lá trên cùng (mặt úp)
-            foreach (var c in cards)
+            foreach (var c in _cards)
             {
                 c.gameObject.SetActive(false);
                 c.CardData.IsFaceUp = false;

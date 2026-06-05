@@ -47,11 +47,11 @@ namespace Piles
                 _maxCount = coverCard.MaxCount;
                 _type = coverCard.Type;
 
-                if (cards.Count > 1)
+                if (_cards.Count > 1)
                 {
                     // Destroy(TopCard.gameObject);
                     // cards.RemoveAt(cards.Count - 1);
-                    (cards[^2], cards[^1]) = (cards[^1], cards[^2]);
+                    (_cards[^2], _cards[^1]) = (_cards[^1], _cards[^2]);
                     EnableTypeAndCount();
                 }
             }
@@ -61,7 +61,7 @@ namespace Piles
             }
 
             // Foundation chỉ hiện lá trên cùng
-            foreach (var c in cards)
+            foreach (var c in _cards)
             {
                 c.gameObject.SetActive(false);
                 c.transform.localPosition = Vector3.zero;
@@ -75,32 +75,29 @@ namespace Piles
                 TopCard.Refresh(CardView.CardState.Flipped);
             }
 
-            _count = cards.Count - 1;
+            _count = _cards.Count - 1;
 
             if (_count == _maxCount)
             {
                 StartCoroutine(ClearPile());
             }
-
-            print($"{_count}/{_maxCount}, type: {_type}");
         }
 
         private IEnumerator ClearPile()
         {
             yield return new WaitForSeconds(1f);
 
-            foreach (var card in cards)
+            foreach (var card in _cards)
             {
                 Destroy(card.gameObject);
             }
 
-            cards.Clear();
+            _cards.Clear();
             EnableTypeAndCount(false);
         }
 
         public override bool CanAccept(CardView incoming)
         {
-            print($"{_count}/{_maxCount}, type: {_type}");
             if (incoming == null)
             {
                 return false;

@@ -6,13 +6,12 @@ namespace Piles
 {
     public abstract class Pile : MonoBehaviour
     {
+        protected List<CardView> _cards = new();
         private BoxCollider2D _collider2D;
 
-        protected List<CardView> cards = new();
-
-        public CardView TopCard => cards.Count > 0 ? cards[^1] : null;
-        public bool IsEmpty => cards.Count == 0;
-        public int Count => cards.Count;
+        public CardView TopCard => _cards.Count > 0 ? _cards[^1] : null;
+        public bool IsEmpty => _cards.Count == 0;
+        public int Count => _cards.Count;
 
         protected virtual void Awake()
         {
@@ -21,22 +20,22 @@ namespace Piles
 
         public virtual void AddCard(CardView card)
         {
-            if (cards.Count == 0)
+            if (_cards.Count == 0)
             {
                 _collider2D.enabled = false;
             }
 
-            cards.Add(card);
+            _cards.Add(card);
             card.transform.SetParent(transform);
             // ArrangeCards();
         }
 
         public virtual void RemoveCard(CardView card)
         {
-            cards.Remove(card);
+            _cards.Remove(card);
             // ArrangeCards();
 
-            if (cards.Count == 0)
+            if (_cards.Count == 0)
             {
                 _collider2D.enabled = true;
             }
