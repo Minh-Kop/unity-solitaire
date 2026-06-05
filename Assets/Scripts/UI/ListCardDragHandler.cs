@@ -1,7 +1,6 @@
 using Core;
 using Piles;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace UI
 {
@@ -36,11 +35,10 @@ namespace UI
             return _isDragging;
         }
 
-        public override void OnBeginDrag(PointerEventData eventData)
+        protected override void HandleBeginDrag()
         {
             _originalSortingOrder = _listCardView.GetSortingOrder();
             _originalPosition = _listCardView.transform.position;
-            base.OnBeginDrag(eventData);
         }
 
         protected override void HandleDrop(Pile targetPile)

@@ -32,7 +32,7 @@ namespace UI
             _boxCollider2D = GetComponent<BoxCollider2D>();
         }
 
-        public virtual void OnBeginDrag(PointerEventData eventData)
+        public void OnBeginDrag(PointerEventData eventData)
         {
             if (!CheckIfCanDrag())
             {
@@ -52,6 +52,8 @@ namespace UI
             // Tính offset để bài không nhảy về tâm con trỏ
             var mouseWorldPos = GetMouseWorldPos();
             _dragOffset = transform.position - mouseWorldPos;
+
+            HandleBeginDrag();
 
             _cardView.SetGlowBorders(true);
             _cardView.SetSortingOrder(MaxSortingOrder);
@@ -105,6 +107,12 @@ namespace UI
             print("Drop on: " + targetPile);
 
             HandleDrop(targetPile);
+        }
+
+        protected virtual void HandleBeginDrag()
+        {
+            _originalPile.RemoveCard(_cardView);
+            _originalPile.ArrangeCards();
         }
 
         protected virtual void HandleDrop(Pile targetPile)
