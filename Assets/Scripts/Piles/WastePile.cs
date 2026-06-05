@@ -53,12 +53,6 @@ namespace Piles
             ArrangeCards();
         }
 
-        // Chỉ lá trên cùng mới được kéo
-        public bool IsTopCard(CardView card)
-        {
-            return TopCard == card;
-        }
-
         public List<CardView> TakeAll()
         {
             var taken = new List<CardView>(_cards);

@@ -164,7 +164,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3574040793894509915, guid: f2f175e226d9f4c32b741845348365ae, type: 3}
       propertyPath: m_Name
-      value: Foundation Pile (5)
+      value: Foundation Pile (2)
       objectReference: {fileID: 0}
     - target: {fileID: 8918844741379013863, guid: f2f175e226d9f4c32b741845348365ae, type: 3}
       propertyPath: m_LocalPosition.x
@@ -657,7 +657,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3574040793894509915, guid: f2f175e226d9f4c32b741845348365ae, type: 3}
       propertyPath: m_Name
-      value: Foundation Pile (6)
+      value: Foundation Pile (3)
       objectReference: {fileID: 0}
     - target: {fileID: 8918844741379013863, guid: f2f175e226d9f4c32b741845348365ae, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1397,7 +1397,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3574040793894509915, guid: f2f175e226d9f4c32b741845348365ae, type: 3}
       propertyPath: m_Name
-      value: Foundation Pile (4)
+      value: Foundation Pile (1)
       objectReference: {fileID: 0}
     - target: {fileID: 8918844741379013863, guid: f2f175e226d9f4c32b741845348365ae, type: 3}
       propertyPath: m_LocalPosition.x

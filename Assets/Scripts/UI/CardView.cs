@@ -53,11 +53,6 @@ namespace UI
 
         public virtual void SetGlowBorders(bool enable)
         {
-            if (_pile is WastePile)
-            {
-                return;
-            }
-
             _glowBorders.SetActive(enable);
         }
 

@@ -34,7 +34,6 @@ namespace UI
         {
             if (IsEmpty)
             {
-                print(_pile);
                 _pile.SetGlowBorders(enable);
             }
             else

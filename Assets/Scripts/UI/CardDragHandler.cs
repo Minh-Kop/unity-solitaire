@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Core;
 using Interfaces;
 using Piles;
@@ -81,7 +80,7 @@ namespace UI
 
                 _currentGlower = currentGlower;
 
-                if (_currentGlower != null)
+                if (_currentGlower != null && _currentGlower.GetPile() is not WastePile)
                 {
                     _currentGlower.SetGlowBorders(true);
                 }
@@ -199,23 +198,6 @@ namespace UI
             }
 
             return bestCollider2D.GetComponent<IGlower>();
-        }
-
-        protected Pile FindTargetPile(PointerEventData eventData)
-        {
-            var results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(eventData, results);
-
-            foreach (var result in results)
-            {
-                var pile = result.gameObject.GetComponentInParent<Pile>();
-                if (pile != null && pile != _originalPile)
-                {
-                    return pile;
-                }
-            }
-
-            return null;
         }
 
         private float CalculateOverlapArea(Bounds a, Bounds b)
