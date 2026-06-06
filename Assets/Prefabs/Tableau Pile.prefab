@@ -297,12 +297,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7961010687435313923}
-  - component: {fileID: 1917791651349888976}
   - component: {fileID: 2643612732254667739}
   - component: {fileID: 3240170724130828226}
   - component: {fileID: 8447250595439926561}
   - component: {fileID: 7416800303592370185}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: List Card View
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -325,33 +324,6 @@ Transform:
   - {fileID: 2755781928263683174}
   m_Father: {fileID: 6133447613960636381}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!50 &1917791651349888976
-Rigidbody2D:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8381867954904495621}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 4
 --- !u!61 &2643612732254667739
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -382,7 +354,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0

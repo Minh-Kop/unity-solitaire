@@ -1,6 +1,7 @@
 using Core;
 using Interfaces;
 using Piles;
+using Solitaire;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -10,10 +11,14 @@ namespace UI
     [RequireComponent(typeof(CardView), typeof(BoxCollider2D))]
     public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
+        private readonly Collider2D[] _overlapResults = new Collider2D[20];
+
         private readonly int MaxSortingOrder = 100;
 
         private BoxCollider2D _boxCollider2D;
         protected CardView _cardView;
+        private ContactFilter2D _contactFilter;
+
         private IGlower _currentGlower;
 
         private Vector3 _dragOffset;
@@ -29,6 +34,12 @@ namespace UI
             _moveAction = InputSystem.actions.FindAction("Player/Mouse Move");
             _cardView = GetComponent<CardView>();
             _boxCollider2D = GetComponent<BoxCollider2D>();
+            _contactFilter = new ContactFilter2D
+            {
+                useLayerMask = true,
+                layerMask = Const.Layers.MaskGlower,
+                // useTriggers = true,
+            };
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -155,29 +166,17 @@ namespace UI
 
         private IGlower FindTargetPile()
         {
-            // 1. Lấy vị trí tâm chuẩn trong không gian thế giới (đã tính cả Offset của Collider)
-            Vector2 center = _boxCollider2D.bounds.center;
-
-            // Đơn giản hơn và chính xác hơn:
-            var size = _boxCollider2D.bounds.size;
-
-            // 3. Lấy góc quay hiện tại của GameObject (Tính theo trục Z trong 2D)
-            var angle = transform.eulerAngles.z;
-
-            // 4. Truyền tất cả vào hàm OverlapBox
-            // var hits = Physics2D.OverlapBoxAll(center, size, angle);
-            var hits = Physics2D.OverlapBoxAll(center, size, 0f);
-
+            var hitCount = _boxCollider2D.Overlap(_contactFilter, _overlapResults);
             Collider2D bestCollider2D = null;
             var maxOverlap = 0f;
 
-            // Duyệt kết quả
-            foreach (var hit in hits)
+            for (var i = 0; i < hitCount; i++)
             {
-                // Tránh việc hộp tự quét trúng chính nó
+                var hit = _overlapResults[i];
+
                 if (
-                    hit == _boxCollider2D
-                    || hit == null
+                    hit == null
+                    || hit == _boxCollider2D
                     || hit.gameObject == _originalPile.gameObject
                 )
                 {
